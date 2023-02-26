@@ -38,7 +38,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
@@ -48,7 +48,8 @@
                 android:fontFamily="@font/amarant_bold"
                 android:textAlignment="center"
                 android:textSize="26sp"
-                android:layout_marginTop="22dp"/>
+                android:layout_marginTop="22dp"
+                android:textColor="@color/app_color_dark"/>
 
             <TextView
                 android:id="@+id/tvLevelTitle"
@@ -267,8 +268,7 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="43dp"
-                            android:background="@color/white_cell"
-                            android:src="@drawable/horse"/>
+                            android:background="@color/white_cell"/>
 
                         <ImageView
                             android:id="@+id/c17"
@@ -967,7 +967,7 @@
                        android:background="@drawable/bg_title_bottom"
                        android:onClick="lauchShareGame"
                        android:src="@drawable/ic_share"
-                       android:visibility="visible"
+                       android:visibility="visible"/>
 
                 </LinearLayout>
 
