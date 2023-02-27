@@ -1,9 +1,20 @@
 package com.example.horsegame
 
+import android.app.Activity
+import android.content.ContentValues
+import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Point
 import android.media.Image
+import android.media.MediaScannerConnection
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import android.util.TimeUtils
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
@@ -11,9 +22,20 @@ import android.widget.LinearLayout
 import android.widget.TableRow
 import android.widget.TextClock
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
+    private var bitmap:Bitmap? = null
+
+    private var string_share = ""
+    private var gaming = true
+    private var mHandler: Handler? = null
+    private var timeInSeconds:Long = 0
+
     private var cellSelected_x = 0
     private var cellSelected_y = 0
 
@@ -22,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private var movesRequired = 4
     private var bonus = 0
     private var widht_bonus = 0
+    private var level = 1
     private var levelMoves = 64
 
     private var checkMovement = true
@@ -36,8 +59,77 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initScreenGame()
+        startGame()
+    }
+
+    private fun resetTime(){
+        mHandler?.removeCallbacks(chronometer)
+        timeInSeconds = 0
+
+        var tvTimeData = findViewById<TextView>(R.id.tvTimeData)
+        tvTimeData.text = "00:00"
+    }
+    private fun startTime(){
+        mHandler = Handler(Looper.getMainLooper())
+        chronometer.run()
+    }
+
+    private var chronometer:Runnable = object : Runnable{
+        override fun run() {
+            try {
+                if(gaming){
+                    timeInSeconds++
+                    updateStopWatchVire(timeInSeconds)
+                }
+            }finally {
+                mHandler!!.postDelayed(this,1000L)
+            }
+        }
+
+        private fun updateStopWatchVire(timeInSeconds: Long) {
+            val formattedTime = getFormatterStopWarch((timeInSeconds*1000))
+            var tvTimeData = findViewById<TextView>(R.id.tvTimeData)
+            tvTimeData.text = formattedTime
+        }
+    }
+
+    private fun getFormatterStopWarch(ms: Long): String {
+        var milliseconds = ms
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
+        milliseconds -= TimeUnit.MINUTES.toMillis(minutes)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds)
+
+        return "${if (minutes < 10) "0 else " else ""}$minutes:"+
+                "${if (seconds < 10) "0" else ""}$seconds"
+    }
+
+    private fun startGame() {
+        gaming = true
+
         resetBoard()
+        clearBoard()
         setFirstPosition()
+
+        resetTime()
+        startTime()
+    }
+
+    private fun clearBoard() {
+        var iv:ImageView
+
+        var colorBlack = ContextCompat.getColor(this,resources.getIdentifier(nameColorBlack,"color",packageName))
+        var colorWhite = ContextCompat.getColor(this,resources.getIdentifier(nameColorWhite,"color",packageName))
+
+        for (i in 0..7){
+            for (j in 0..7){
+                iv = findViewById(resources.getIdentifier("c$i$j","id",packageName))
+                //iv.setImageResource(R.drawable.horse)
+                iv.setImageResource(0)
+
+                if (checkColorCell(i,j) == "black") iv.setBackgroundColor(colorBlack)
+                else iv.setBackgroundColor(colorWhite)
+            }
+        }
     }
 
 
@@ -269,6 +361,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private fun showMessage(tittle: String, action: String, gameOver: Boolean) {
+        gaming = false
 
         var lyMessage = findViewById<LinearLayout>(R.id.lyMensaje)
         lyMessage.visibility = View.VISIBLE
@@ -280,8 +373,10 @@ class MainActivity : AppCompatActivity() {
         var score = ""
         if(gameOver){
             score = "Score: " + (levelMoves-moves) + "/" + levelMoves
+            string_share = "This game makes me sick !!!" + score + " https://github.com/kikiymini/curso-android"
         }else{
             score = tvTimeData.text.toString()
+            string_share = "Let's go!! New challenge completed. Level: $level (" + score + ") https://github.com/kikiymini/curso-android"
         }
         var tvScoreMessage = findViewById<TextView>(R.id.tvScoreMessage)
         tvScoreMessage.text = score
@@ -337,6 +432,69 @@ class MainActivity : AppCompatActivity() {
         iv.setImageResource((R.drawable.horse))
     }
 
+    fun lauchAction(v: View) {
+        shareGame()
+    }
+
+    private fun shareGame() {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),1)
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),1)
+
+        var ssc: ScreenCapture = capture(this)
+        bitmap = ssc.getBitmap()
+
+        if (bitmap != null){
+            var idGame = SimpleDateFormat("yyyy/MM/dd").format(Date())
+            idGame = idGame.replace(":","")
+            idGame = idGame.replace("/","")
+
+            val path = saveImage(bitmap!!,"${idGame}.jpg")
+            val bmpUri = Uri.parse(path)
+
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            shareIntent.putExtra(Intent.EXTRA_STREAM,bmpUri)
+            shareIntent.putExtra(Intent.EXTRA_STREAM,string_share)
+            shareIntent.type = "image/png"
+
+            val finalShareIntent = Intent.createChooser(shareIntent,"Select the app you want to share the game to")
+            finalShareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            this.startActivity(finalShareIntent)
+
+        }
+
+    }
+
+    private fun saveImage(bitmap: Bitmap, fileName: String): String? {
+        if(bitmap == null)
+            return null
+
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q){
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME,fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE,"image/jpeg")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Screenshots")
+            }
+
+            val uri = this.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,contentValues)
+
+            if(uri!=null){
+                this.contentResolver.openOutputStream(uri).use {
+                    if(it == null)
+                        return@use
+
+                    bitmap.compress(Bitmap.CompressFormat.PNG,85,it)
+                    it.flush()
+                    it.close()
+
+                    // add pic to gallery
+                    MediaScannerConnection.scanFile(this, arrayOf(uri.toString()),null,null)
+
+                }
+            }
+        }
+
+    }
 
 
 }
