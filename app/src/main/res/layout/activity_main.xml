@@ -232,7 +232,7 @@
 
                         <TextView
                             android:id="@+id/tvOptionsData"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/amaranth_regular"
                             android:paddingBottom="10dp"
@@ -241,6 +241,15 @@
                             android:textColor="@color/app_color_ligth"
                             android:textSize="18sp"
                             android:background="@drawable/bg_data_bottom"/>
+                        <TextView
+                            android:id="@+id/tvBonusData"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/amarant_bold"
+                            android:paddingBottom="10dp"
+                            android:text=""
+                            android:textColor="@color/app_color_ligth"
+                            android:textSize="18sp"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -918,7 +927,7 @@
                    android:visibility="invisible">
 
                    <TextView
-                       android:id="@+id/tvIntroLevel"
+                       android:id="@+id/tvTitleMessage"
                        android:layout_width="match_parent"
                        android:layout_height="wrap_content"
                        android:gravity="center"
@@ -932,7 +941,7 @@
 
 
                    <TextView
-                       android:id="@+id/tvIntroLives"
+                       android:id="@+id/tvScoreMessage"
                        android:layout_width="match_parent"
                        android:layout_height="wrap_content"
                        android:gravity="center"
