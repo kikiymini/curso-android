@@ -1,11 +1,9 @@
 package com.example.horsegame
 
-import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Point
-import android.media.Image
 import android.media.MediaScannerConnection
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -14,13 +12,11 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.util.TimeUtils
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TableRow
-import android.widget.TextClock
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -39,13 +35,19 @@ class MainActivity : AppCompatActivity() {
     private var cellSelected_x = 0
     private var cellSelected_y = 0
 
+    private var nextLevel = false
+
     private var options = 0
-    private var moves = 64
-    private var movesRequired = 4
+    private var moves = 0
+    private var movesRequired = 0
     private var bonus = 0
     private var widht_bonus = 0
     private var level = 1
-    private var levelMoves = 64
+    private var levelMoves = 0
+
+    private var lives = 1
+    private var score_lives = 1
+    private var scoreLevel = 1
 
     private var checkMovement = true
 
@@ -104,14 +106,205 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startGame() {
-        gaming = true
+
+        setLevel()
+        setLevelParameters()
 
         resetBoard()
         clearBoard()
+
+        setBoardLevel()
         setFirstPosition()
 
         resetTime()
         startTime()
+        gaming = true
+    }
+
+    private fun setBoardLevel() {
+        when (level){
+            2  -> paintLevel_2()
+            3  -> paintLevel_3()
+            4  -> paintLevel_4()
+            5  -> paintLevel_5()
+            6  -> paintLevel_6()
+            7  -> paintLevel_7()
+            8  -> paintLevel_8()
+            9  -> paintLevel_9()
+            10 -> paintLevel_10()
+            11 -> paintLevel_11()
+            12 -> paintLevel_12()
+            13 -> paintLevel_13()
+        }
+    }
+
+    private fun paintLevel_13() {
+        paintLevel_12();paintLevel_11()
+    }
+
+    private fun paintLevel_12() {
+        paintRow(4);paintRow(6)
+    }
+
+    private fun paintLevel_11() {
+        paintColum(1);paintColum(7)
+    }
+
+    private fun paintLevel_10() {
+        paintLevel_8();paintLevel_9()
+    }
+
+    private fun paintLevel_9() {
+        paintColum(2)
+    }
+
+    private fun paintLevel_8() {
+        paintRow(5)
+    }
+
+    private fun paintLevel_7() {
+        paintLevel_6();paintLevel_4()
+    }
+
+    private fun paintLevel_6() {
+        paintLevel_3();paintLevel_2()
+    }
+
+
+    private fun paintRow(row:Int) {
+
+        for (i in 0..7) {
+            board[i][row] = 1
+            paintHorseCell(i, row, "previous_cell")
+        }
+
+    }
+
+    private fun paintDiagonal() {
+
+        for (i in 0..7) {
+            board[i][i] = 1
+            paintHorseCell(i, i, "previous_cell")
+        }
+
+    }
+
+    private fun paintDiagonalInverse() {
+
+        for (i in 0..7) {
+            board[i][Math.abs(i - 7)] = 1
+            paintHorseCell(i, Math.abs(i - 7), "previous_cell")
+        }
+
+    }
+    private fun paintLevel_4() {
+        paintLevel_3();paintLevel_5()
+    }
+
+    private fun paintLevel_5() {
+        for (i in 0..3){
+            for (j in 0..3){
+                board[j][i]=1
+                paintHorseCell(j,i,"previous_cell")
+            }
+        }
+    }
+
+    private fun paintLevel_3() {
+        for (i in 0..7){
+            for (j in 0..7){
+                board[j][i] = 1
+                paintHorseCell(j,i,"previous_cell")
+            }
+        }
+    }
+
+    private fun paintLevel_2() {
+        paintColum(6)
+    }
+
+    private fun paintColum(colum: Int) {
+        for(i in 0..7){
+            board[colum][i] = 1
+            paintHorseCell(colum,i,"previous_cell")
+        }
+    }
+
+    private fun setLevelParameters() {
+        var tvLiveData = findViewById<TextView>(R.id.tvLiveData)
+        tvLiveData.text = lives.toString()
+
+        score_lives = lives
+        var tvLevelNumber = findViewById<TextView>(R.id.tvLevelNumber)
+        tvLevelNumber.text = lives.toString()
+        scoreLevel = level
+
+        bonus = 0
+        var tvBonusData = findViewById<TextView>(R.id.tvBonusData)
+        tvBonusData.text = ""
+
+        setLevelMoves()
+        moves = levelMoves
+        movesRequired = setMovesRequired()
+
+    }
+
+    private fun setMovesRequired(): Int {
+        var movesRequired = 0
+        when (level){
+            1  -> movesRequired = 8
+            2  -> movesRequired = 10
+            3  -> movesRequired = 12
+            4  -> movesRequired = 10
+            5  -> movesRequired = 10
+            6  -> movesRequired = 12
+            7  -> movesRequired = 5
+            8  -> movesRequired = 7
+            9  -> movesRequired = 9
+            10 -> movesRequired = 8
+            11 -> movesRequired = 1000
+            12 -> movesRequired = 5
+            13 -> movesRequired = 5
+        }
+        return movesRequired
+    }
+
+    private fun setLevelMoves() {
+        when (level){
+            1  -> levelMoves = 64
+            2  -> levelMoves = 56
+            3  -> levelMoves = 32
+            4  -> levelMoves = 16
+            5  -> levelMoves = 48
+            6  -> levelMoves = 36
+            7  -> levelMoves = 48
+            8  -> levelMoves = 49
+            9  -> levelMoves = 59
+            10 -> levelMoves = 48
+            11 -> levelMoves = 64
+            12 -> levelMoves = 48
+            13 -> levelMoves = 48
+        }
+    }
+
+    private fun setLevel() {
+        if(nextLevel){
+            level++
+            if(!premium) setLives()
+            else{
+                editor.apply{
+                    putInt("LEVEL",level!!)
+                }.apply()
+            }
+        }else{
+            if(!premium){
+                lives--
+                if (lives < 1){
+                    level = 1
+                    lives = 1
+                }
+            }
+        }
     }
 
     private fun clearBoard() {
@@ -135,11 +328,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun initScreenGame() {
         setSizeBoard()
-        hideMessage()
+        hideMessage(false)
     }
-    private fun hideMessage() {
+    private fun hideMessage(start: Boolean) {
+
         var lyMessage = findViewById<LinearLayout>(R.id.lyMensaje)
         lyMessage.visibility = View.INVISIBLE
+
+        if (start) startGame()
     }
     private fun setSizeBoard() {
         var iv:ImageView
@@ -171,7 +367,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun checkChellClicked(v: View) {
+    fun checkCellClicked(v: View) {
         var name = v.tag.toString()
         var x = name.subSequence(1,2).toString().toInt()
         var y = name.subSequence(2,3).toString().toInt()
@@ -264,8 +460,16 @@ class MainActivity : AppCompatActivity() {
     private fun setFirstPosition() {
         var x = 0
         var y = 0
-        x = (0..7).random()
-        y = (0..7).random()
+        var firstPosition = false
+
+        while (!firstPosition){
+            x = (0..7).random()
+            y = (0..7).random()
+
+            if(board[x][y] == 0) firstPosition = true
+            checkOption(x,y)
+            if(options == 0) firstPosition = false
+        }
 
         cellSelected_x = x
         cellSelected_y = y
@@ -362,6 +566,7 @@ class MainActivity : AppCompatActivity() {
     }
     private fun showMessage(tittle: String, action: String, gameOver: Boolean) {
         gaming = false
+        nextLevel = !gameOver
 
         var lyMessage = findViewById<LinearLayout>(R.id.lyMensaje)
         lyMessage.visibility = View.VISIBLE
@@ -432,7 +637,7 @@ class MainActivity : AppCompatActivity() {
         iv.setImageResource((R.drawable.horse))
     }
 
-    fun lauchAction(v: View) {
+    fun lauchShareGame(v: View) {
         shareGame()
     }
 
@@ -494,6 +699,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    fun lauchAction(v: View) {
+        hideMessage(true)
     }
 
 
