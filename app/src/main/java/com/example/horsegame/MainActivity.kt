@@ -6,25 +6,31 @@ import android.graphics.Bitmap
 import android.graphics.Point
 import android.media.MediaScannerConnection
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TableRow
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.*
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
+
+    private var unloadedAd = true
     private var bitmap:Bitmap? = null
 
     private var string_share = ""
@@ -54,6 +60,8 @@ class MainActivity : AppCompatActivity() {
     private var nameColorBlack = "black_cell"
     private var nameColorWhite = "white_cell"
 
+    private var mInterstitialAd: InterstitialAd? = null
+
     private lateinit var board:Array<IntArray>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +69,66 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initScreenGame()
+        initAds()
         startGame()
+    }
+
+    private fun initAds() {
+        MobileAds.initialize(this) {}
+
+        val adView = AdView(this)
+        adView.setAdSize(AdSize.BANNER)
+        adView.adUnitId = "ca-app-pub-3940256099942544/6300978111"
+
+        var lyAdsBanner = findViewById<LinearLayout>(R.id.lyAdsBanner)
+        lyAdsBanner.addView(adView)
+
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+
+    }
+
+    private fun showInterstitial(){
+        if (mInterstitialAd != null) {
+            unloadedAd = true
+
+            mInterstitialAd?.fullScreenContentCallback = object: FullScreenContentCallback() {
+                override fun onAdClicked() {
+                }
+
+                override fun onAdDismissedFullScreenContent() {
+                    mInterstitialAd = null
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
+                    mInterstitialAd = null
+                }
+
+                override fun onAdImpression() {
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                }
+            }
+
+            mInterstitialAd?.show(this)
+        }
+    }
+    private fun getReadyAds(){
+
+        var adRequest = AdRequest.Builder().build()
+
+        unloadedAd = false
+
+        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", adRequest, object : InterstitialAdLoadCallback() {
+            override fun onAdFailedToLoad(adError: LoadAdError) {
+                mInterstitialAd = null
+            }
+
+            override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                mInterstitialAd = interstitialAd
+            }
+        })
     }
 
     private fun resetTime(){
@@ -106,6 +173,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startGame() {
+
+        getReadyAds()
 
         setLevel()
         setLevelParameters()
@@ -290,6 +359,7 @@ class MainActivity : AppCompatActivity() {
     private fun setLevel() {
         if(nextLevel){
             level++
+            setLives()
             if(!premium) setLives()
             else{
                 editor.apply{
@@ -304,6 +374,24 @@ class MainActivity : AppCompatActivity() {
                     lives = 1
                 }
             }
+        }
+    }
+
+    private fun setLives() {
+        when (level){
+            1  -> lives = 1
+            2  -> lives = 4
+            3  -> lives = 3
+            4  -> lives = 3
+            5  -> lives = 4
+            6  -> lives = 3
+            7  -> lives = 5
+            8  -> lives = 3
+            9  -> lives = 4
+            10 -> lives = 5
+            11 -> lives = 5
+            12 -> lives = 3
+            13 -> lives = 4
         }
     }
 
@@ -577,6 +665,7 @@ class MainActivity : AppCompatActivity() {
         var tvTimeData = findViewById<TextView>(R.id.tvTimeData)
         var score = ""
         if(gameOver){
+            showInterstitial()
             score = "Score: " + (levelMoves-moves) + "/" + levelMoves
             string_share = "This game makes me sick !!!" + score + " https://github.com/kikiymini/curso-android"
         }else{

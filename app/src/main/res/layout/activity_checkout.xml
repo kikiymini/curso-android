@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#035b75"
+    android:id="@+id/lyMain"
+    tools:context=".CheckoutActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/amarant_bold"
+        android:textSize="30sp"
+        android:text="@string/premiumTittle"
+        android:textAlignment="center"
+        android:textColor="@color/app_color_ligth"
+        android:layout_marginTop="70dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="60dp">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/benefit1"/>
+        <TextView
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/amaranth_regular"
+            android:textSize="25dp"
+            android:text="@string/premiumBenefit1"
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/app_color_ligth"
+            android:layout_marginLeft="20dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="60dp">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/benefit2"/>
+        <TextView
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/amaranth_regular"
+            android:textSize="25dp"
+            android:text="@string/premiumBenefit2"
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/app_color_ligth"
+            android:layout_marginLeft="20dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="60dp">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/benefit3"/>
+        <TextView
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/amaranth_regular"
+            android:textSize="25dp"
+            android:text="@string/premiumBenefit3"
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/app_color_ligth"
+            android:layout_marginLeft="20dp"/>
+
+    </LinearLayout>
+    
+    <Button
+        android:id="@+id/pay_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="50dp"
+        android:textSize="16sp"
+        android:textColor="@color/app_color_dark"
+        android:text="@string/pay"
+        android:background="@color/previous_cell"/>
+
+</LinearLayout>
