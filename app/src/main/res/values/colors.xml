@@ -24,7 +24,7 @@
 
     <color name="message_bg">#cdfaf8ef</color>
 
-    <color name="white_call_premium">#eaf7eb</color>
-    <color name="black_call_premium">#185303</color>
-    <color name="contrast_call_premium">#17711b</color>
+    <color name="white_cell_premium">#eaf7eb</color>
+    <color name="black_cell_premium">#185303</color>
+    <color name="contrast_cell_premium">#17711b</color>
 </resources>

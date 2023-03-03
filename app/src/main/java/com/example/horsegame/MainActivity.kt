@@ -2,6 +2,7 @@ package com.example.horsegame
 
 import android.content.ContentValues
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.media.MediaScannerConnection
@@ -11,19 +12,21 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TableRow
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.test.runner.screenshot.ScreenCapture
+import androidx.test.runner.screenshot.Screenshot.capture
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.stripe.android.PaymentConfiguration
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -32,6 +35,8 @@ class MainActivity : AppCompatActivity() {
 
     private var unloadedAd = true
     private var bitmap:Bitmap? = null
+
+    private var LASTLEVEL = 9
 
     private var string_share = ""
     private var gaming = true
@@ -64,13 +69,68 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var board:Array<IntArray>
 
+    private var premium: Boolean = false
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var editor: SharedPreferences.Editor
+
+    private var optionBlack = R.drawable.option_black
+    private var optionWhite = R.drawable.option_white
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         initScreenGame()
-        initAds()
+        initPreferences()
+    }
+
+    private fun initPreferences() {
+        sharedPreferences = getSharedPreferences("sharedPrefs", MODE_PRIVATE)
+        editor = sharedPreferences.edit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        checkPremium()
         startGame()
+    }
+
+    private fun checkPremium() {
+
+        premium = sharedPreferences.getBoolean("PREMIUM",false)
+        if(premium){
+
+            LASTLEVEL = 14
+
+            level = sharedPreferences.getInt("LEVEL",1)
+
+            var lyPremium = findViewById<LinearLayout>(R.id.lyPremium)
+            lyPremium.removeAllViews()
+
+            var lyAdsPBanner = findViewById<LinearLayout>(R.id.lyAdsBanner)
+            lyAdsPBanner.removeAllViews()
+
+            var svGame = findViewById<ScrollView>(R.id.svGame)
+            svGame.setPadding(0,0,0,0)
+
+            var tvLiveData = findViewById<TextView>(R.id.tvLiveData)
+            tvLiveData.background  = getDrawable(R.drawable.bg_data_bottom_contrast_premium)
+
+            var tvLiveTitle = findViewById<TextView>(R.id.tvLiveTitle)
+            tvLiveTitle.background  = getDrawable(R.drawable.bg_data_bottom_contrast_premium)
+
+            var vNewBonus = findViewById<View>(R.id.vNewBonus)
+            vNewBonus.setBackgroundColor(ContextCompat.getColor(this,resources.getIdentifier("contrast_data_premium","color",packageName)))
+
+            nameColorBlack = "black_cell_premium"
+            nameColorWhite = "white_cell_premium"
+
+            optionBlack = R.drawable.option_black_premium
+            optionWhite = R.drawable.option_white_premium
+        }else{
+            initAds()
+        }
     }
 
     private fun initAds() {
@@ -100,7 +160,7 @@ class MainActivity : AppCompatActivity() {
                     mInterstitialAd = null
                 }
 
-                override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
+                override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                     mInterstitialAd = null
                 }
 
@@ -174,20 +234,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun startGame() {
 
-        getReadyAds()
+        if (unloadedAd && !premium) getReadyAds()
 
         setLevel()
-        setLevelParameters()
+        if (level > LASTLEVEL){
+            if (premium) showMessage("You have beaten the game!!", "Wait for more levels",false,true)
+            else showMessage("More levels only with Premium access", "Get Premium Access",false,true)
 
-        resetBoard()
-        clearBoard()
+        }else{
 
-        setBoardLevel()
-        setFirstPosition()
+            setLevelParameters()
 
-        resetTime()
-        startTime()
-        gaming = true
+            resetBoard()
+            clearBoard()
+
+            setBoardLevel()
+            setFirstPosition()
+
+            resetTime()
+            startTime()
+            gaming = true
+        }
     }
 
     private fun setBoardLevel() {
@@ -303,6 +370,8 @@ class MainActivity : AppCompatActivity() {
         var tvLiveData = findViewById<TextView>(R.id.tvLiveData)
         tvLiveData.text = lives.toString()
 
+        if (premium) tvLiveData.text = "∞"
+
         score_lives = lives
         var tvLevelNumber = findViewById<TextView>(R.id.tvLevelNumber)
         tvLevelNumber.text = lives.toString()
@@ -360,12 +429,12 @@ class MainActivity : AppCompatActivity() {
         if(nextLevel){
             level++
             setLives()
-            if(!premium) setLives()
+           /* if(!premium) setLives()
             else{
                 editor.apply{
                     putInt("LEVEL",level!!)
                 }.apply()
-            }
+            }*/
         }else{
             if(!premium){
                 lives--
@@ -393,6 +462,7 @@ class MainActivity : AppCompatActivity() {
             12 -> lives = 3
             13 -> lives = 4
         }
+        if (premium) lives = 99999999
     }
 
     private fun clearBoard() {
@@ -524,7 +594,7 @@ class MainActivity : AppCompatActivity() {
             checkNewBonus()
             checkGameOver()
         }else{
-            showMessage("You win!!","Next Level",false)
+            showMessage("You win!!", "Next Level", false, true)
         }
     }
 
@@ -607,8 +677,8 @@ class MainActivity : AppCompatActivity() {
     private fun paintOption(x: Int, y: Int) {
 
         var iv:ImageView = findViewById(resources.getIdentifier("c$x$y","id",packageName))
-        if(checkColorCell(x,y) == "black") iv.setBackgroundResource(R.drawable.option_black)
-        else iv.setBackgroundResource(R.drawable.option_white)
+        if(checkColorCell(x,y) == "black") iv.setBackgroundResource(optionBlack)
+        else iv.setBackgroundResource(optionWhite)
 
     }
     private fun paintAllOptions() {
@@ -648,11 +718,11 @@ class MainActivity : AppCompatActivity() {
                 checkMovement = false
                 paintAllOptions()
             }else{
-                showMessage("Game Over","Try Again!",true)
+                showMessage("Game Over", "Try Again!", true, true)
             }
         }
     }
-    private fun showMessage(tittle: String, action: String, gameOver: Boolean) {
+    private fun showMessage(tittle: String, action: String, gameOver: Boolean, endGame: Boolean = false) {
         gaming = false
         nextLevel = !gameOver
 
@@ -665,13 +735,16 @@ class MainActivity : AppCompatActivity() {
         var tvTimeData = findViewById<TextView>(R.id.tvTimeData)
         var score = ""
         if(gameOver){
-            showInterstitial()
+            if(!premium) showInterstitial()
             score = "Score: " + (levelMoves-moves) + "/" + levelMoves
             string_share = "This game makes me sick !!!" + score + " https://github.com/kikiymini/curso-android"
         }else{
             score = tvTimeData.text.toString()
             string_share = "Let's go!! New challenge completed. Level: $level (" + score + ") https://github.com/kikiymini/curso-android"
         }
+
+        if (endGame) score = ""
+
         var tvScoreMessage = findViewById<TextView>(R.id.tvScoreMessage)
         tvScoreMessage.text = score
 
@@ -731,8 +804,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun shareGame() {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),1)
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),1)
+        //ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),1)
+        //ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),1)
 
         var ssc: ScreenCapture = capture(this)
         bitmap = ssc.getBitmap()
@@ -787,11 +860,26 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
+        return null
     }
 
     fun lauchAction(v: View) {
+        if (!premium && (level > LASTLEVEL)) callPayment()
         hideMessage(true)
+    }
+
+    fun lauchPaymentCard(v: View) {
+        callPayment()
+    }
+
+    private fun callPayment() {
+
+        var keyStripePayment = "pk_test_Dt4ZBItXSZT1EzmOd8yCxonL"
+        PaymentConfiguration.init(applicationContext, keyStripePayment)
+
+        val intent = Intent(this,CheckoutActivity::class.java)
+        intent.putExtra("level",level)
+        startActivity(intent)
     }
 
 
