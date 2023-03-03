@@ -18,7 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         tools:targetApi="31"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:versionCode = "1"
+        android:versionName = "1.0">
         <activity
             android:name=".CheckoutActivity"
             android:exported="false" />
