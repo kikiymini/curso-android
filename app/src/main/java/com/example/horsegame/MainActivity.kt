@@ -148,12 +148,11 @@ class MainActivity : AppCompatActivity() {
 
         var lyAdsBanner = findViewById<LinearLayout>(R.id.lyAdsBanner)
 
-        if(publicidad == 0) {
-            lyAdsBanner.addView(adView)
-            val adRequest = AdRequest.Builder().build()
-            adView.loadAd(adRequest)
-            publicidad++
-        }
+        lyAdsBanner.addView(adView)
+        val adRequest = AdRequest.Builder().build()
+        publicidad++
+
+        if(publicidad == 0)  adView.loadAd(adRequest)
 
 
     }
@@ -384,7 +383,7 @@ class MainActivity : AppCompatActivity() {
 
         score_lives = lives
         var tvLevelNumber = findViewById<TextView>(R.id.tvLevelNumber)
-        tvLevelNumber.text = lives.toString()
+        tvLevelNumber.text = level.toString()
         scoreLevel = level
 
         bonus = 0
@@ -871,7 +870,6 @@ class MainActivity : AppCompatActivity() {
 
                 }
             }
-
             return uri.toString()
         }
 
@@ -907,6 +905,4 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("level",level)
         startActivity(intent)
     }
-
-
 }

@@ -34,10 +34,6 @@ class CheckoutActivity : AppCompatActivity() {
 
     private var level :Int? = 1
 
-    private lateinit var addressLauncher: AddressLauncher
-    private var shippingDetails: AddressDetails? = null
-
-    private lateinit var addressButton: Button
 /*
     private val addressConfiguration = AddressLauncher.Configuration(
         additionalFields: AddressLauncher.AdditionalFieldsConfiguration(
@@ -62,12 +58,6 @@ class CheckoutActivity : AppCompatActivity() {
         payButton.isEnabled = false
 
         paymentSheet = PaymentSheet(this, ::onPaymentSheetResult)
-
-        // Hook up the address button
-       //  addressButton = findViewById(R.id.address_button)
-       //  addressButton.setOnClickListener(::onAddressClicked)
-
-        //addressLauncher = AddressLauncher(this, ::onAddressLauncherResult)
 
         fetchPaymentIntent()
     }
@@ -144,13 +134,6 @@ class CheckoutActivity : AppCompatActivity() {
         paymentSheet.presentWithPaymentIntent(paymentIntentClientSecret, configuration)
     }
 
-   /* private fun onAddressClicked(view: View) {
-        addressLauncher.present(
-            publishableKey = publishableKey,
-            configuration = addressConfiguration
-        )
-    }*/
-
     private fun onPaymentSheetResult(paymentResult: PaymentSheetResult) {
         when (paymentResult) {
             is PaymentSheetResult.Completed -> {
@@ -170,7 +153,7 @@ class CheckoutActivity : AppCompatActivity() {
 
     private fun becamePremium() {
         var sharedPreferences: SharedPreferences
-        sharedPreferences = getSharedPreferences("sharePrefs", MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences("sharedPrefs", MODE_PRIVATE)
         var editor = sharedPreferences.edit()
 
         editor.apply{
@@ -181,16 +164,4 @@ class CheckoutActivity : AppCompatActivity() {
         val intent = Intent(this,MainActivity::class.java)
         startActivity(intent)
     }
-/*
-    private fun onAddressLauncherResult(result: AddressLauncherResult) {
-        // TODO: Handle result and update your UI
-        when (result) {
-            AddressLauncherResult.Success -> {
-                shippingDetails = result.address
-            }
-            AddressLauncherResult.Canceled -> {
-                // TODO: Handle cancel
-            }
-        }
-    }*/
 }
