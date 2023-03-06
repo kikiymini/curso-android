@@ -16,10 +16,12 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.ScrollView
 import android.widget.TableRow
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.test.runner.screenshot.ScreenCapture
 import androidx.test.runner.screenshot.Screenshot.capture
@@ -27,11 +29,15 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.stripe.android.PaymentConfiguration
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
+
+    private var publicidad = 0
 
     private var unloadedAd = true
     private var bitmap:Bitmap? = null
@@ -141,10 +147,14 @@ class MainActivity : AppCompatActivity() {
         adView.adUnitId = "ca-app-pub-3940256099942544/6300978111"
 
         var lyAdsBanner = findViewById<LinearLayout>(R.id.lyAdsBanner)
-        lyAdsBanner.addView(adView)
 
-        val adRequest = AdRequest.Builder().build()
-        adView.loadAd(adRequest)
+        if(publicidad == 0) {
+            lyAdsBanner.addView(adView)
+            val adRequest = AdRequest.Builder().build()
+            adView.loadAd(adRequest)
+            publicidad++
+        }
+
 
     }
 
@@ -804,8 +814,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun shareGame() {
-        //ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),1)
-        //ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),1)
+        ActivityCompat.requestPermissions(this,
+            arrayOf("android.permission.WRITE_EXTERNAL_STORAGE"),1)
+        ActivityCompat.requestPermissions(this,
+            arrayOf("android.permission.READ_EXTERNAL_STORAGE"),1)
 
         var ssc: ScreenCapture = capture(this)
         bitmap = ssc.getBitmap()
@@ -859,8 +871,22 @@ class MainActivity : AppCompatActivity() {
 
                 }
             }
+
+            return uri.toString()
         }
-        return null
+
+        val filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath
+        val dir = File(filePath)
+        if(!dir.exists()) dir.mkdirs()
+        val file = File(dir,fileName)
+        val fOut = FileOutputStream(file)
+
+        bitmap.compress(Bitmap.CompressFormat.PNG,85,fOut)
+        fOut.flush()
+        fOut.close()
+
+        MediaScannerConnection.scanFile(this, arrayOf(file.toString()),null,null)
+        return filePath
     }
 
     fun lauchAction(v: View) {
