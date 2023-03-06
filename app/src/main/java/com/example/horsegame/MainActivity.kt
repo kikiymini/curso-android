@@ -105,6 +105,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkPremium() {
 
         premium = sharedPreferences.getBoolean("PREMIUM",false)
+        
         if(premium){
 
             LASTLEVEL = 14
